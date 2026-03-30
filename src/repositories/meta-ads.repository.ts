@@ -4,7 +4,7 @@ import type { PaginatedResult } from "@/repositories/leads.repository";
 
 const TABLE_NAME = "facebook_ads_daily";
 const PAGE_SIZE = 50;
-const SELECT_COLUMNS = "campaign_id, report_date, campaign_name, spend, impressions, clicks, leads, ctr, cpc, cpl, cpm";
+const SELECT_COLUMNS = "campaign_id, report_date, campaign_name, spend, impressions, clicks, leads, ctr, cpc, cpl";
 
 export class MetaAdsRepository {
   async findPaginated(page: number = 1): Promise<PaginatedResult<MetaAd>> {
@@ -74,7 +74,8 @@ export class MetaAdsRepository {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select(SELECT_COLUMNS)
-      .order("report_date", { ascending: false });
+      .order("report_date", { ascending: false })
+      .limit(10000);
 
     if (error) throw new Error("Erro ao buscar dados de Meta Ads. Tente novamente.");
     return data ?? [];

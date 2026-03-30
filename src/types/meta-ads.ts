@@ -6,7 +6,6 @@ export interface MetaAd {
   ctr: number | null;
   cpc: number | null;
   cpl: number | null;
-  cpm: number | null;
   impressions: number | null;
   clicks: number | null;
   leads: number | null;

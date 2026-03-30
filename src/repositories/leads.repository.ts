@@ -81,7 +81,8 @@ export class LeadsRepository {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select(SELECT_COLUMNS)
-      .order("data", { ascending: false });
+      .order("data", { ascending: false })
+      .limit(10000);
 
     if (error) throw new Error("Erro ao buscar leads. Tente novamente.");
     return data ?? [];
