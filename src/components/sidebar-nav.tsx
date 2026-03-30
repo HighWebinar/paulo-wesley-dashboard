@@ -6,7 +6,7 @@ import { Users, BarChart3 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard/leads", label: "Leads", icon: Users },
-  { href: "/dashboard/meta-ads", label: "Meta Ads", icon: BarChart3 },
+  // { href: "/dashboard/meta-ads", label: "Meta Ads", icon: BarChart3 },
 ];
 
 export function SidebarNav() {
