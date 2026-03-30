@@ -25,13 +25,13 @@ interface MetaAdsPageProps {
 
 export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
   const { from, to, campaign, page: pageParam } = await searchParams;
-  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const requestedPage = Math.max(1, Math.min(Number(pageParam) || 1, 1000));
 
   const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
 
   const result = validRange
-    ? await metaAdsService.getByDateRange(from, to, currentPage)
-    : await metaAdsService.getPaginated(currentPage);
+    ? await metaAdsService.getByDateRange(from, to, requestedPage)
+    : await metaAdsService.getPaginated(requestedPage);
 
   const campaignNames = metaAdsService.getCampaignNames(result.data);
   const ads = campaign

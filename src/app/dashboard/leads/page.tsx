@@ -15,13 +15,13 @@ interface LeadsPageProps {
 
 export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   const { from, to, renda, tempo, page: pageParam } = await searchParams;
-  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const requestedPage = Math.max(1, Math.min(Number(pageParam) || 1, 1000));
 
   const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
 
   const result = validRange
-    ? await leadsService.getByDateRange(from, to, currentPage)
-    : await leadsService.getPaginated(currentPage);
+    ? await leadsService.getByDateRange(from, to, requestedPage)
+    : await leadsService.getPaginated(requestedPage);
 
   const { rendas: rendasOptions, tempos: tempoOptions } = leadsService.getFilterOptions(result.data);
   const leads = leadsService.filterLeads(result.data, { renda, tempo });
