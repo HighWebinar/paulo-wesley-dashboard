@@ -1,16 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import type { DateRange } from "react-day-picker";
 
 export function DateRangePicker() {
@@ -20,45 +15,71 @@ export function DateRangePicker() {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const [date, setDate] = useState<DateRange | undefined>(
+  const initial =
     fromParam && toParam
       ? { from: new Date(fromParam + "T00:00:00"), to: new Date(toParam + "T00:00:00") }
-      : undefined
-  );
+      : undefined;
+
+  const [date, setDate] = useState<DateRange | undefined>(initial);
   const [open, setOpen] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  function applyFilter(range: DateRange | undefined) {
-    setDate(range);
-
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (range?.from && range?.to) {
-      params.set("from", format(range.from, "yyyy-MM-dd"));
-      params.set("to", format(range.to, "yyyy-MM-dd"));
-    } else {
-      params.delete("from");
-      params.delete("to");
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setClickCount(0);
+      }
     }
 
-    router.push(`?${params.toString()}`);
-  }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   function handleSelect(range: DateRange | undefined) {
     setDate(range);
-    if (range?.from && range?.to) {
-      applyFilter(range);
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+
+    // Segundo clique = range completo
+    if (newCount >= 2 && range?.from && range?.to) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("from", format(range.from, "yyyy-MM-dd"));
+      params.set("to", format(range.to, "yyyy-MM-dd"));
+      router.push(`?${params.toString()}`);
       setOpen(false);
+      setClickCount(0);
     }
   }
 
   function handleClear() {
-    applyFilter(undefined);
+    setDate(undefined);
+    setClickCount(0);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("from");
+    params.delete("to");
+    router.push(`?${params.toString()}`);
     setOpen(false);
   }
 
+  function handleOpen() {
+    if (!open) {
+      setDate(undefined);
+      setClickCount(0);
+    }
+    setOpen(!open);
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+    <div ref={containerRef} className="relative">
+      <button
+        onClick={handleOpen}
+        className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all"
+      >
         <CalendarIcon className="w-4 h-4" />
         {date?.from && date?.to ? (
           <>
@@ -68,26 +89,29 @@ export function DateRangePicker() {
         ) : (
           "Selecionar período"
         )}
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <Calendar
-          mode="range"
-          selected={date}
-          onSelect={handleSelect}
-          numberOfMonths={2}
-          locale={ptBR}
-        />
-        {date?.from && (
-          <div className="p-3 border-t border-gray-200">
-            <button
-              onClick={handleClear}
-              className="text-sm text-gray-500 hover:text-gray-900 transition-all"
-            >
-              Limpar filtro
-            </button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-md">
+          <Calendar
+            mode="range"
+            selected={date}
+            onSelect={handleSelect}
+            numberOfMonths={2}
+            locale={ptBR}
+          />
+          {date?.from && (
+            <div className="p-3 border-t border-gray-200">
+              <button
+                onClick={handleClear}
+                className="text-sm text-gray-500 hover:text-gray-900 transition-all"
+              >
+                Limpar filtro
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

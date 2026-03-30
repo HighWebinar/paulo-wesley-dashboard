@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { Poppins, Geist } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Zoryam - Dashboard",
   description: "Dashboard de métricas",
   icons: {
-    icon: "/images/FAVICON.png",
+    icon: "/favicon.png",
   },
 };
 
@@ -25,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={cn("h-full", "antialiased", poppins.variable, "font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="pt-BR" className={`${poppins.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-poppins)]">
         {children}
       </body>
