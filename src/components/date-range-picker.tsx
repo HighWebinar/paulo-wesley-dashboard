@@ -15,19 +15,36 @@ export function DateRangePicker() {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const initial =
-    fromParam && toParam
-      ? { from: new Date(fromParam + "T00:00:00"), to: new Date(toParam + "T00:00:00") }
-      : undefined;
+  const hasUrlRange = !!(fromParam && toParam);
+  const urlRange: DateRange | undefined = hasUrlRange
+    ? { from: new Date(fromParam + "T00:00:00"), to: new Date(toParam + "T00:00:00") }
+    : undefined;
 
-  const [date, setDate] = useState<DateRange | undefined>(initial);
+  const [date, setDate] = useState<DateRange | undefined>(urlRange);
   const [open, setOpen] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fromRef = useRef(fromParam);
+  const toRef = useRef(toParam);
+
+  // Sync com URL quando searchParams mudam externamente
+  if (fromParam !== fromRef.current || toParam !== toRef.current) {
+    fromRef.current = fromParam;
+    toRef.current = toParam;
+    if (!open) {
+      setDate(urlRange);
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        // Restaura a data da URL se fechou sem completar seleção
+        setDate(
+          fromRef.current && toRef.current
+            ? { from: new Date(fromRef.current + "T00:00:00"), to: new Date(toRef.current + "T00:00:00") }
+            : undefined
+        );
         setOpen(false);
         setClickCount(0);
       }
@@ -45,11 +62,11 @@ export function DateRangePicker() {
     const newCount = clickCount + 1;
     setClickCount(newCount);
 
-    // Segundo clique = range completo
     if (newCount >= 2 && range?.from && range?.to) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("from", format(range.from, "yyyy-MM-dd"));
       params.set("to", format(range.to, "yyyy-MM-dd"));
+      params.delete("page");
       router.push(`?${params.toString()}`);
       setOpen(false);
       setClickCount(0);
@@ -62,6 +79,7 @@ export function DateRangePicker() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("from");
     params.delete("to");
+    params.delete("page");
     router.push(`?${params.toString()}`);
     setOpen(false);
   }
