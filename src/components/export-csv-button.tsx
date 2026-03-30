@@ -17,8 +17,12 @@ export function ExportCsvButton({ data, filename }: ExportCsvButtonProps) {
       ...data.map((row) =>
         headers
           .map((header) => {
-            const value = String(row[header] ?? "");
-            return value.includes(",") || value.includes('"')
+            let value = String(row[header] ?? "");
+            // Previne CSV injection: valores que começam com =, +, -, @
+            if (/^[=+\-@\t\r]/.test(value)) {
+              value = "'" + value;
+            }
+            return value.includes(",") || value.includes('"') || value.includes("\n")
               ? `"${value.replace(/"/g, '""')}"`
               : value;
           })
