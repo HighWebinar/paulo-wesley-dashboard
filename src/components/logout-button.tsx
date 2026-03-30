@@ -4,9 +4,8 @@ import { createClient } from "@/lib/supabase/client";
 import { LogOut } from "lucide-react";
 
 export function LogoutButton() {
-  const supabase = createClient();
-
   async function handleLogout() {
+    const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = "/login";
   }

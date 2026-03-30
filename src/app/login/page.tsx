@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const attemptsRef = useRef(0);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   function startLockout() {
     setLocked(true);
@@ -78,7 +78,6 @@ export default function LoginPage() {
             alt="Zoryam"
             width={160}
             height={40}
-            style={{ width: "auto", height: "auto" }}
             priority
           />
           <p className="text-sm text-gray-500">Acesse sua conta</p>
