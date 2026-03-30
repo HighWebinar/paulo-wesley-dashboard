@@ -13,9 +13,22 @@ const Calendar = dynamic(
   { ssr: false }
 );
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
+
 export function DateRangePicker() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
 
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
@@ -32,7 +45,6 @@ export function DateRangePicker() {
   const fromRef = useRef(fromParam);
   const toRef = useRef(toParam);
 
-  // Sync com URL quando searchParams mudam externamente
   if (fromParam !== fromRef.current || toParam !== toRef.current) {
     fromRef.current = fromParam;
     toRef.current = toParam;
@@ -44,7 +56,6 @@ export function DateRangePicker() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        // Restaura a data da URL se fechou sem completar seleção
         setDate(
           fromRef.current && toRef.current
             ? { from: new Date(fromRef.current + "T00:00:00"), to: new Date(toRef.current + "T00:00:00") }
@@ -101,7 +112,7 @@ export function DateRangePicker() {
     <div ref={containerRef} className="relative">
       <button
         onClick={handleOpen}
-        className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all"
+        className="flex items-center gap-2 px-3 py-2 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all"
       >
         <CalendarIcon className="w-4 h-4" />
         {date?.from && date?.to ? (
@@ -115,19 +126,19 @@ export function DateRangePicker() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-md">
+        <div className="fixed sm:absolute inset-x-4 sm:inset-x-auto sm:right-0 top-auto sm:top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-md max-w-[calc(100vw-2rem)] overflow-auto">
           <Calendar
             mode="range"
             selected={date}
             onSelect={handleSelect}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             locale={ptBR}
           />
           {date?.from && (
             <div className="p-3 border-t border-gray-200">
               <button
                 onClick={handleClear}
-                className="text-sm text-gray-500 hover:text-gray-900 transition-all"
+                className="text-sm text-gray-500 hover:text-gray-900 transition-all px-2 py-1 min-h-[44px] flex items-center"
               >
                 Limpar filtro
               </button>

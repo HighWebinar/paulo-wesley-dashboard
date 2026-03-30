@@ -53,7 +53,7 @@ export function DataPagination({ currentPage, totalPages, total }: DataPaginatio
   }
 
   return (
-    <div className="flex items-center justify-between pt-4">
+    <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3 pt-4">
       <p className="text-sm text-gray-500">
         {total} registro{total !== 1 ? "s" : ""}
       </p>

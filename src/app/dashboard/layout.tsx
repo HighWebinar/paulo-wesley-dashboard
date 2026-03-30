@@ -29,7 +29,7 @@ export default function DashboardLayout({
         </div>
       </MobileMenuButton>
 
-      <main className="flex-1 p-4 lg:p-6 pt-16 lg:pt-6">{children}</main>
+      <main className="flex-1 min-w-0 p-4 lg:p-6 pt-16 lg:pt-6">{children}</main>
     </div>
   );
 }
