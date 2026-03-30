@@ -75,8 +75,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm space-y-8 p-8 bg-white border border-gray-200 shadow-sm rounded-xl">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-sm space-y-8 p-6 sm:p-8 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col items-center gap-4">
           <Image
             src="/images/logo-nome.svg"
@@ -104,7 +104,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={locked}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-[#6852FA] focus:border-[#6852FA] focus:outline-none disabled:opacity-50"
+              className="w-full px-3 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-[#6852FA] focus:border-[#6852FA] focus:outline-none disabled:opacity-50"
               placeholder="seu@email.com"
             />
           </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={locked}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-[#6852FA] focus:border-[#6852FA] focus:outline-none disabled:opacity-50"
+              className="w-full px-3 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-[#6852FA] focus:border-[#6852FA] focus:outline-none disabled:opacity-50"
               placeholder="••••••••"
             />
           </div>
@@ -135,7 +135,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || locked}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#6852FA] hover:bg-[#5142B7] text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-[#6852FA] hover:bg-[#5142B7] text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <LogIn className="w-4 h-4" />
             {locked

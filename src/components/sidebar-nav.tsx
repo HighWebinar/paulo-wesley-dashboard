@@ -21,7 +21,7 @@ export function SidebarNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl transition-all ${
+            className={`flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
               isActive
                 ? "bg-[#6852FA] text-white"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
