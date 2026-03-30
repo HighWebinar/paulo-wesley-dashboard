@@ -1,22 +1,13 @@
 import { MetaAdsService } from "@/services/meta-ads.service";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { DateRangePicker } from "@/components/date-range-picker";
-import { CampaignFilter } from "@/components/campaign-filter";
+import { SelectFilter } from "@/components/select-filter";
+import { DataPagination } from "@/components/data-pagination";
+import { MetricCard } from "@/components/metric-card";
+import { formatCurrency, formatNumber, formatPercent, formatDate, isValidDateParam } from "@/lib/formatters";
 import { DollarSign, Eye, MousePointerClick, Users, Target } from "lucide-react";
 
 const metaAdsService = new MetaAdsService();
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function formatNumber(value: number): string {
-  return value.toLocaleString("pt-BR");
-}
-
-function formatPercent(value: number): string {
-  return value.toFixed(2) + "%";
-}
 
 const metricCards = [
   { label: "Investimento Total", key: "totalSpend" as const, icon: DollarSign, format: formatCurrency },
@@ -29,24 +20,28 @@ const metricCards = [
 ];
 
 interface MetaAdsPageProps {
-  searchParams: Promise<{ from?: string; to?: string; campaign?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; campaign?: string; page?: string }>;
 }
 
 export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
-  const { from, to, campaign } = await searchParams;
+  const { from, to, campaign, page: pageParam } = await searchParams;
+  const currentPage = Math.max(1, Number(pageParam) || 1);
 
-  let ads =
-    from && to
-      ? await metaAdsService.getByDateRange(from, to)
-      : await metaAdsService.getAll();
+  const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
 
-  const campaignNames = [...new Set(ads.map((ad) => ad.campaign_name).filter(Boolean))] as string[];
+  const result = validRange
+    ? await metaAdsService.getByDateRange(from, to, currentPage)
+    : await metaAdsService.getPaginated(currentPage);
 
-  if (campaign) {
-    ads = ads.filter((ad) => ad.campaign_name === campaign);
-  }
+  const campaignNames = metaAdsService.getCampaignNames(result.data);
+  const ads = campaign
+    ? metaAdsService.filterByCampaign(result.data, campaign)
+    : result.data;
 
-  const summary = await metaAdsService.getSummaryFromAds(ads);
+  const summary = metaAdsService.getSummaryFromAds(ads);
+  const csvFilename = from && to
+    ? `meta-ads-paulo-wesley_${from}_${to}`
+    : "meta-ads-paulo-wesley";
 
   return (
     <div className="space-y-6">
@@ -56,34 +51,37 @@ export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
           <p className="text-sm text-gray-500 mt-1">Facebook Ads Daily</p>
         </div>
         <div className="flex items-center gap-3">
-          <CampaignFilter campaigns={campaignNames} />
+          <SelectFilter paramKey="campaign" options={campaignNames} placeholder="Todas as campanhas" />
           <DateRangePicker />
-          <ExportCsvButton data={JSON.parse(JSON.stringify(ads))} filename="meta-ads-paulo-wesley" />
+          <ExportCsvButton
+            data={ads.map((a) => ({
+              report_date: a.report_date,
+              campaign_name: a.campaign_name ?? "",
+              spend: a.spend ?? 0,
+              impressions: a.impressions ?? 0,
+              clicks: a.clicks ?? 0,
+              leads: a.leads ?? 0,
+              ctr: a.ctr ?? 0,
+              cpc: a.cpc ?? 0,
+              cpl: a.cpl ?? 0,
+            }))}
+            filename={csvFilename}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((metric) => (
-          <div
+          <MetricCard
             key={metric.key}
-            className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all rounded-xl p-5"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                {metric.label}
-              </span>
-              <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center">
-                <metric.icon className="w-5 h-5 text-[#6852FA]" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mt-2">
-              {metric.format(summary[metric.key])}
-            </p>
-          </div>
+            label={metric.label}
+            value={metric.format(summary[metric.key])}
+            icon={metric.icon}
+          />
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -113,11 +111,9 @@ export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
                     className="border-b border-gray-100 hover:bg-gray-50 transition-all"
                   >
                     <td className="px-4 py-3 text-gray-900">
-                      {new Date(ad.report_date + "T00:00:00").toLocaleDateString("pt-BR")}
+                      {formatDate(ad.report_date)}
                     </td>
-                    <td className="px-4 py-3 text-gray-900">
-                      {ad.campaign_name ?? "-"}
-                    </td>
+                    <td className="px-4 py-3 text-gray-900">{ad.campaign_name ?? "-"}</td>
                     <td className="px-4 py-3 text-gray-500 text-right">
                       {ad.spend != null ? formatCurrency(ad.spend) : "-"}
                     </td>
@@ -144,6 +140,13 @@ export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-3 border-t border-gray-200">
+          <DataPagination
+            currentPage={result.page}
+            totalPages={result.totalPages}
+            total={result.total}
+          />
         </div>
       </div>
     </div>

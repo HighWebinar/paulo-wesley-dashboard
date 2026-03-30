@@ -3,22 +3,24 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter } from "lucide-react";
 
-interface CampaignFilterProps {
-  campaigns: string[];
+interface SelectFilterProps {
+  paramKey: string;
+  options: string[];
+  placeholder: string;
 }
 
-export function CampaignFilter({ campaigns }: CampaignFilterProps) {
+export function SelectFilter({ paramKey, options, placeholder }: SelectFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const current = searchParams.get("campaign") ?? "";
+  const current = searchParams.get(paramKey) ?? "";
 
   function handleChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
 
     if (value) {
-      params.set("campaign", value);
+      params.set(paramKey, value);
     } else {
-      params.delete("campaign");
+      params.delete(paramKey);
     }
 
     router.push(`?${params.toString()}`);
@@ -38,10 +40,10 @@ export function CampaignFilter({ campaigns }: CampaignFilterProps) {
           backgroundSize: "1.5em 1.5em",
         }}
       >
-        <option value="">Todas as campanhas</option>
-        {campaigns.map((name) => (
-          <option key={name} value={name}>
-            {name}
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
           </option>
         ))}
       </select>
