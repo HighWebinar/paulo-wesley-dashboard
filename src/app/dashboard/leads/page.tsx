@@ -1,11 +1,22 @@
 import { LeadsService } from "@/services/leads.service";
 import { ExportCsvButton } from "@/components/export-csv-button";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { Users } from "lucide-react";
 
 const leadsService = new LeadsService();
 
-export default async function LeadsPage() {
-  const leads = await leadsService.getAll();
+interface LeadsPageProps {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}
+
+export default async function LeadsPage({ searchParams }: LeadsPageProps) {
+  const { from, to } = await searchParams;
+
+  const leads =
+    from && to
+      ? await leadsService.getByDateRange(from, to)
+      : await leadsService.getAll();
+
   const total = leads.length;
 
   return (
@@ -15,7 +26,10 @@ export default async function LeadsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
           <p className="text-sm text-gray-500 mt-1">Captação Paulo Wesley</p>
         </div>
-        <ExportCsvButton data={JSON.parse(JSON.stringify(leads))} filename="leads-paulo-wesley" />
+        <div className="flex items-center gap-3">
+          <DateRangePicker />
+          <ExportCsvButton data={JSON.parse(JSON.stringify(leads))} filename="leads-paulo-wesley" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -37,62 +51,32 @@ export default async function LeadsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Data
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Nome
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Email
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Telefone
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  UTM Source
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  UTM Campaign
-                </th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Data</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Nome</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Email</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Telefone</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">UTM Source</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">UTM Campaign</th>
               </tr>
             </thead>
             <tbody>
               {leads.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                     Nenhum lead encontrado
                   </td>
                 </tr>
               ) : (
                 leads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-all"
-                  >
+                  <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
                     <td className="px-4 py-3 text-gray-900">
-                      {lead.data
-                        ? new Date(lead.data + "T00:00:00").toLocaleDateString("pt-BR")
-                        : "-"}
+                      {lead.data ? new Date(lead.data + "T00:00:00").toLocaleDateString("pt-BR") : "-"}
                     </td>
-                    <td className="px-4 py-3 text-gray-900">
-                      {lead.nome ?? "-"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {lead.email ?? "-"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {lead.telefone ?? "-"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {lead.utm_source ?? "-"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {lead.utm_campaign ?? "-"}
-                    </td>
+                    <td className="px-4 py-3 text-gray-900">{lead.nome ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500">{lead.email ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500">{lead.telefone ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500">{lead.utm_source ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500">{lead.utm_campaign ?? "-"}</td>
                   </tr>
                 ))
               )}

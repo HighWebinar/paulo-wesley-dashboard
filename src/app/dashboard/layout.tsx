@@ -4,10 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Users, BarChart3, LogOut } from "lucide-react";
+import { Users, BarChart3, LogOut } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/leads", label: "Leads", icon: Users },
   { href: "/dashboard/meta-ads", label: "Meta Ads", icon: BarChart3 },
 ];
@@ -43,10 +42,7 @@ export default function DashboardLayout({
 
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
+            const isActive = pathname.startsWith(item.href);
 
             return (
               <Link

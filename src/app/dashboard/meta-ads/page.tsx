@@ -1,6 +1,8 @@
 import { MetaAdsService } from "@/services/meta-ads.service";
 import { ExportCsvButton } from "@/components/export-csv-button";
-import { DollarSign, Eye, MousePointerClick, Users, ShoppingCart, Target } from "lucide-react";
+import { DateRangePicker } from "@/components/date-range-picker";
+import { CampaignFilter } from "@/components/campaign-filter";
+import { DollarSign, Eye, MousePointerClick, Users, Target } from "lucide-react";
 
 const metaAdsService = new MetaAdsService();
 
@@ -21,17 +23,30 @@ const metricCards = [
   { label: "Impressões", key: "totalImpressions" as const, icon: Eye, format: formatNumber },
   { label: "Cliques", key: "totalClicks" as const, icon: MousePointerClick, format: formatNumber },
   { label: "Leads", key: "totalLeads" as const, icon: Users, format: formatNumber },
-  { label: "Compras", key: "totalPurchases" as const, icon: ShoppingCart, format: formatNumber },
   { label: "CTR Médio", key: "avgCtr" as const, icon: Target, format: formatPercent },
   { label: "CPC Médio", key: "avgCpc" as const, icon: MousePointerClick, format: formatCurrency },
   { label: "CPL Médio", key: "avgCpl" as const, icon: Users, format: formatCurrency },
 ];
 
-export default async function MetaAdsPage() {
-  const [ads, summary] = await Promise.all([
-    metaAdsService.getAll(),
-    metaAdsService.getSummary(),
-  ]);
+interface MetaAdsPageProps {
+  searchParams: Promise<{ from?: string; to?: string; campaign?: string }>;
+}
+
+export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
+  const { from, to, campaign } = await searchParams;
+
+  let ads =
+    from && to
+      ? await metaAdsService.getByDateRange(from, to)
+      : await metaAdsService.getAll();
+
+  const campaignNames = [...new Set(ads.map((ad) => ad.campaign_name).filter(Boolean))] as string[];
+
+  if (campaign) {
+    ads = ads.filter((ad) => ad.campaign_name === campaign);
+  }
+
+  const summary = await metaAdsService.getSummaryFromAds(ads);
 
   return (
     <div className="space-y-6">
@@ -40,7 +55,11 @@ export default async function MetaAdsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Meta Ads</h1>
           <p className="text-sm text-gray-500 mt-1">Facebook Ads Daily</p>
         </div>
-        <ExportCsvButton data={JSON.parse(JSON.stringify(ads))} filename="meta-ads-paulo-wesley" />
+        <div className="flex items-center gap-3">
+          <CampaignFilter campaigns={campaignNames} />
+          <DateRangePicker />
+          <ExportCsvButton data={JSON.parse(JSON.stringify(ads))} filename="meta-ads-paulo-wesley" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

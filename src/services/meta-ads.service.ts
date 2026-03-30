@@ -16,9 +16,16 @@ export class MetaAdsService {
     return this.repository.findByDateRange(startDate, endDate);
   }
 
+  async getSummaryFromAds(ads: MetaAd[]) {
+    return this.buildSummary(ads);
+  }
+
   async getSummary() {
     const ads = await this.repository.findAll();
+    return this.buildSummary(ads);
+  }
 
+  private buildSummary(ads: MetaAd[]) {
     const totalSpend = this.sum(ads, "spend");
     const totalImpressions = this.sum(ads, "impressions");
     const totalClicks = this.sum(ads, "clicks");
