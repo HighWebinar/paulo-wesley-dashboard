@@ -1,5 +1,16 @@
 import { MetaAdsRepository } from "@/repositories/meta-ads.repository";
+import type { PaginatedResult } from "@/repositories/leads.repository";
 import type { MetaAd } from "@/types/meta-ads";
+
+export interface MetaAdsSummary {
+  totalSpend: number;
+  totalImpressions: number;
+  totalClicks: number;
+  totalLeads: number;
+  avgCpl: number;
+  avgCpc: number;
+  avgCtr: number;
+}
 
 export class MetaAdsService {
   private repository: MetaAdsRepository;
@@ -8,29 +19,39 @@ export class MetaAdsService {
     this.repository = new MetaAdsRepository();
   }
 
+  async getPaginated(page: number = 1): Promise<PaginatedResult<MetaAd>> {
+    return this.repository.findPaginated(page);
+  }
+
+  async getByDateRange(
+    startDate: string,
+    endDate: string,
+    page: number = 1
+  ): Promise<PaginatedResult<MetaAd>> {
+    return this.repository.findByDateRange(startDate, endDate, page);
+  }
+
   async getAll(): Promise<MetaAd[]> {
     return this.repository.findAll();
   }
 
-  async getByDateRange(startDate: string, endDate: string): Promise<MetaAd[]> {
-    return this.repository.findByDateRange(startDate, endDate);
+  getCampaignNames(ads: MetaAd[]): string[] {
+    return [...new Set(ads.map((a) => a.campaign_name).filter(Boolean))] as string[];
   }
 
-  async getSummaryFromAds(ads: MetaAd[]) {
+  filterByCampaign(ads: MetaAd[], campaign: string): MetaAd[] {
+    return ads.filter((a) => a.campaign_name === campaign);
+  }
+
+  getSummaryFromAds(ads: MetaAd[]): MetaAdsSummary {
     return this.buildSummary(ads);
   }
 
-  async getSummary() {
-    const ads = await this.repository.findAll();
-    return this.buildSummary(ads);
-  }
-
-  private buildSummary(ads: MetaAd[]) {
+  private buildSummary(ads: MetaAd[]): MetaAdsSummary {
     const totalSpend = this.sum(ads, "spend");
     const totalImpressions = this.sum(ads, "impressions");
     const totalClicks = this.sum(ads, "clicks");
     const totalLeads = this.sum(ads, "leads");
-    const totalPurchases = this.sum(ads, "purchases");
 
     const avgCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
     const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
@@ -41,7 +62,6 @@ export class MetaAdsService {
       totalImpressions,
       totalClicks,
       totalLeads,
-      totalPurchases,
       avgCpl,
       avgCpc,
       avgCtr,

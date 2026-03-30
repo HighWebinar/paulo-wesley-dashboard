@@ -1,4 +1,4 @@
-import { LeadsRepository } from "@/repositories/leads.repository";
+import { LeadsRepository, type PaginatedResult } from "@/repositories/leads.repository";
 import type { Lead } from "@/types/leads";
 
 export class LeadsService {
@@ -8,42 +8,36 @@ export class LeadsService {
     this.repository = new LeadsRepository();
   }
 
+  async getPaginated(page: number = 1): Promise<PaginatedResult<Lead>> {
+    return this.repository.findPaginated(page);
+  }
+
+  async getByDateRange(
+    startDate: string,
+    endDate: string,
+    page: number = 1
+  ): Promise<PaginatedResult<Lead>> {
+    return this.repository.findByDateRange(startDate, endDate, page);
+  }
+
   async getAll(): Promise<Lead[]> {
     return this.repository.findAll();
   }
 
-  async getByDateRange(startDate: string, endDate: string): Promise<Lead[]> {
-    return this.repository.findByDateRange(startDate, endDate);
+  getFilterOptions(leads: Lead[]): { rendas: string[]; tempos: string[] } {
+    const rendas = [...new Set(leads.map((l) => l.renda_mensal).filter(Boolean))] as string[];
+    const tempos = [...new Set(leads.map((l) => l.tempo_mercado).filter(Boolean))] as string[];
+    return { rendas, tempos };
   }
 
-  async getTotalCount(): Promise<number> {
-    return this.repository.count();
-  }
-
-  async getSummary() {
-    const leads = await this.repository.findAll();
-
-    const bySource = this.groupBy(leads, "utm_source");
-    const byCampaign = this.groupBy(leads, "utm_campaign");
-
-    return {
-      total: leads.length,
-      bySource,
-      byCampaign,
-    };
-  }
-
-  private groupBy(
-    leads: Lead[],
-    key: keyof Lead
-  ): Record<string, number> {
-    return leads.reduce(
-      (acc, lead) => {
-        const value = (lead[key] as string) ?? "Não informado";
-        acc[value] = (acc[value] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+  filterLeads(leads: Lead[], filters: { renda?: string; tempo?: string }): Lead[] {
+    let filtered = leads;
+    if (filters.renda) {
+      filtered = filtered.filter((l) => l.renda_mensal === filters.renda);
+    }
+    if (filters.tempo) {
+      filtered = filtered.filter((l) => l.tempo_mercado === filters.tempo);
+    }
+    return filtered;
   }
 }
