@@ -13,55 +13,35 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface LeadsFilters {
+  startDate?: string;
+  endDate?: string;
+  renda?: string;
+  tempo?: string;
+}
+
 export class LeadsRepository {
-  async findPaginated(page: number = 1): Promise<PaginatedResult<Lead>> {
+  async findPaginated(page: number = 1, filters: LeadsFilters = {}): Promise<PaginatedResult<Lead>> {
     const supabase = await createClient();
     const from = (page - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    const [{ data, error }, { count, error: countError }] = await Promise.all([
-      supabase
-        .from(TABLE_NAME)
-        .select(SELECT_COLUMNS)
-        .order("data", { ascending: false })
-        .range(from, to),
-      supabase
-        .from(TABLE_NAME)
-        .select(SELECT_COLUMNS, { count: "exact", head: true }),
-    ]);
-
-    if (error) throw new Error("Erro ao buscar leads. Tente novamente.");
-    if (countError) throw new Error("Erro ao buscar leads. Tente novamente.");
-
-    const total = count ?? 0;
-
-    return {
-      data: data ?? [],
-      total,
-      page,
-      pageSize: PAGE_SIZE,
-      totalPages: Math.ceil(total / PAGE_SIZE),
-    };
-  }
-
-  async findByDateRange(
-    startDate: string,
-    endDate: string,
-    page: number = 1
-  ): Promise<PaginatedResult<Lead>> {
-    const supabase = await createClient();
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-
-    const baseQuery = supabase
+    let query = supabase
       .from(TABLE_NAME)
       .select(SELECT_COLUMNS, { count: "exact" })
-      .gte("data", startDate)
-      .lte("data", endDate)
-      .order("data", { ascending: false })
-      .range(from, to);
+      .order("data", { ascending: false });
 
-    const { data, error, count } = await baseQuery;
+    if (filters.startDate && filters.endDate) {
+      query = query.gte("data", filters.startDate).lte("data", filters.endDate);
+    }
+    if (filters.renda) {
+      query = query.eq("renda_mensal", filters.renda);
+    }
+    if (filters.tempo) {
+      query = query.eq("tempo_mercado", filters.tempo);
+    }
+
+    const { data, error, count } = await query.range(from, to);
 
     if (error) throw new Error("Erro ao buscar leads. Tente novamente.");
 
@@ -76,15 +56,19 @@ export class LeadsRepository {
     };
   }
 
-  async findAll(): Promise<Lead[]> {
+  async getDistinctRenda(): Promise<string[]> {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from(TABLE_NAME)
-      .select(SELECT_COLUMNS)
-      .order("data", { ascending: false })
-      .limit(10000);
+    const { data, error } = await supabase.rpc("get_distinct_renda_mensal");
 
-    if (error) throw new Error("Erro ao buscar leads. Tente novamente.");
-    return data ?? [];
+    if (error) throw new Error("Erro ao buscar filtros. Tente novamente.");
+    return (data ?? []) as string[];
+  }
+
+  async getDistinctTempo(): Promise<string[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_distinct_tempo_mercado");
+
+    if (error) throw new Error("Erro ao buscar filtros. Tente novamente.");
+    return (data ?? []) as string[];
   }
 }
