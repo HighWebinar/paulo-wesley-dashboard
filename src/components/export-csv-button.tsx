@@ -39,10 +39,13 @@ export function ExportCsvButton({ data, filename }: ExportCsvButtonProps) {
     URL.revokeObjectURL(url);
   }
 
+  const isEmpty = data.length === 0;
+
   return (
     <button
       onClick={handleExport}
-      className="flex items-center gap-2 px-4 py-2 bg-[#6852FA] hover:bg-[#5142B7] text-white text-sm font-medium rounded-xl transition-all"
+      disabled={isEmpty}
+      className="flex items-center gap-2 px-4 py-2 bg-[#6852FA] hover:bg-[#5142B7] text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Download className="w-4 h-4" />
       Exportar CSV
