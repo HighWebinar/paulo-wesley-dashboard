@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { MetaAdsService } from "@/services/meta-ads.service";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { DateRangePicker } from "@/components/date-range-picker";
@@ -40,6 +41,15 @@ export default async function MetaAdsPage({ searchParams }: MetaAdsPageProps) {
     metaAdsService.getCampaignNames(),
     metaAdsService.getSummary(filters),
   ]);
+
+  if (result.totalPages > 0 && requestedPage > result.totalPages) {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (campaign) params.set("campaign", campaign);
+    params.set("page", String(result.totalPages));
+    redirect(`/dashboard/meta-ads?${params.toString()}`);
+  }
 
   const csvFilename = from && to
     ? `meta-ads-paulo-wesley_${from}_${to}`

@@ -45,32 +45,37 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      attemptsRef.current += 1;
+      if (error) {
+        attemptsRef.current += 1;
 
-      if (attemptsRef.current >= MAX_ATTEMPTS) {
-        setError(`Muitas tentativas. Aguarde ${LOCKOUT_SECONDS} segundos.`);
-        startLockout();
-      } else {
-        setError("Email ou senha inválidos");
+        if (attemptsRef.current >= MAX_ATTEMPTS) {
+          setError(`Muitas tentativas. Aguarde ${LOCKOUT_SECONDS} segundos.`);
+          startLockout();
+        } else {
+          setError("Email ou senha inválidos");
+        }
+
+        setLoading(false);
+        return;
       }
 
+      attemptsRef.current = 0;
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Erro de conexão. Verifique sua internet e tente novamente.");
       setLoading(false);
-      return;
     }
-
-    attemptsRef.current = 0;
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm space-y-8 p-8 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col items-center gap-4">
           <Image
@@ -80,6 +85,7 @@ export default function LoginPage() {
             height={40}
             priority
           />
+          <h1 className="sr-only">Login - Zoryam Dashboard</h1>
           <p className="text-sm text-gray-500">Acesse sua conta</p>
         </div>
 
@@ -140,6 +146,6 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

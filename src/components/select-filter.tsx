@@ -22,6 +22,7 @@ export function SelectFilter({ paramKey, options, placeholder }: SelectFilterPro
     } else {
       params.delete(paramKey);
     }
+    params.delete("page");
 
     router.push(`?${params.toString()}`);
   }
@@ -32,6 +33,7 @@ export function SelectFilter({ paramKey, options, placeholder }: SelectFilterPro
       <select
         value={current}
         onChange={(e) => handleChange(e.target.value)}
+        aria-label={placeholder}
         className="appearance-none pl-9 pr-8 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 focus:ring-[#6852FA] focus:border-[#6852FA] focus:outline-none cursor-pointer"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,

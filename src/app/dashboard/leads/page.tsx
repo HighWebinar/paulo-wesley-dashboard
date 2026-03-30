@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { LeadsService } from "@/services/leads.service";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { DateRangePicker } from "@/components/date-range-picker";
@@ -29,6 +30,16 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
     leadsService.getRendaOptions(),
     leadsService.getTempoOptions(),
   ]);
+
+  if (result.totalPages > 0 && requestedPage > result.totalPages) {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (renda) params.set("renda", renda);
+    if (tempo) params.set("tempo", tempo);
+    params.set("page", String(result.totalPages));
+    redirect(`/dashboard/leads?${params.toString()}`);
+  }
 
   const csvFilename = from && to
     ? `leads-paulo-wesley_${from}_${to}`
