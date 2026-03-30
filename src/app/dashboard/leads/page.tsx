@@ -19,12 +19,16 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
 
   const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
 
-  const result = validRange
-    ? await leadsService.getByDateRange(from, to, requestedPage)
-    : await leadsService.getPaginated(requestedPage);
-
-  const { rendas: rendasOptions, tempos: tempoOptions } = leadsService.getFilterOptions(result.data);
-  const leads = leadsService.filterLeads(result.data, { renda, tempo });
+  const [result, rendasOptions, tempoOptions] = await Promise.all([
+    leadsService.getPaginated(requestedPage, {
+      startDate: validRange ? from : undefined,
+      endDate: validRange ? to : undefined,
+      renda,
+      tempo,
+    }),
+    leadsService.getRendaOptions(),
+    leadsService.getTempoOptions(),
+  ]);
 
   const csvFilename = from && to
     ? `leads-paulo-wesley_${from}_${to}`
@@ -32,17 +36,17 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
           <p className="text-sm text-gray-500 mt-1">Captação Paulo Wesley</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <SelectFilter paramKey="renda" options={rendasOptions} placeholder="Renda mensal" />
           <SelectFilter paramKey="tempo" options={tempoOptions} placeholder="Tempo de mercado" />
           <DateRangePicker />
           <ExportCsvButton
-            data={leads.map((l) => ({
+            data={result.data.map((l) => ({
               data: l.data ?? "",
               nome: l.nome ?? "",
               email: l.email ?? "",
@@ -77,18 +81,16 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               </tr>
             </thead>
             <tbody>
-              {leads.length === 0 ? (
+              {result.data.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                     Nenhum lead encontrado
                   </td>
                 </tr>
               ) : (
-                leads.map((lead) => (
+                result.data.map((lead) => (
                   <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
-                    <td className="px-4 py-3 text-gray-900">
-                      {formatDate(lead.data)}
-                    </td>
+                    <td className="px-4 py-3 text-gray-900">{formatDate(lead.data)}</td>
                     <td className="px-4 py-3 text-gray-900">{lead.nome ?? "-"}</td>
                     <td className="px-4 py-3 text-gray-500">{lead.email ?? "-"}</td>
                     <td className="px-4 py-3 text-gray-500">{lead.telefone ?? "-"}</td>

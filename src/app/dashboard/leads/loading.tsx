@@ -25,18 +25,36 @@ export default function LeadsLoading() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl">
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex gap-16">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-3 w-20 bg-gray-200 rounded" />
-          ))}
-        </div>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="px-4 py-4 border-b border-gray-100 flex gap-16">
-            {Array.from({ length: 6 }).map((_, j) => (
-              <div key={j} className="h-4 w-24 bg-gray-100 rounded" />
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <th key={i} className="text-left px-4 py-3">
+                  <div className="h-3 w-20 bg-gray-200 rounded" />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <tr key={i} className="border-b border-gray-100">
+                {Array.from({ length: 6 }).map((_, j) => (
+                  <td key={j} className="px-4 py-3">
+                    <div className="h-4 w-24 bg-gray-100 rounded" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+          <div className="h-4 w-24 bg-gray-100 rounded" />
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-8 w-8 bg-gray-100 rounded-xl" />
             ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
