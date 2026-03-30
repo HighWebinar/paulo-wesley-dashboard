@@ -5,6 +5,7 @@ import { DateRangePicker } from "@/components/date-range-picker";
 import { SelectFilter } from "@/components/select-filter";
 import { DataPagination } from "@/components/data-pagination";
 import { MetricCard } from "@/components/metric-card";
+import { LeadsMobileList } from "@/components/leads-mobile-list";
 import { formatDate, isValidDateParam } from "@/lib/formatters";
 import { Users } from "lucide-react";
 
@@ -46,7 +47,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
     : "leads-paulo-wesley";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
@@ -78,17 +79,30 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         <MetricCard label="Total de Leads" value={String(result.total)} icon={Users} />
       </div>
 
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
+      {/* Mobile: lista expandível */}
+      <div className="block lg:hidden bg-white border border-gray-200 shadow-sm rounded-xl">
+        <LeadsMobileList leads={result.data} />
+        <div className="px-4 py-3 border-t border-gray-200">
+          <DataPagination
+            currentPage={result.page}
+            totalPages={result.totalPages}
+            total={result.total}
+          />
+        </div>
+      </div>
+
+      {/* Desktop: tabela */}
+      <div className="hidden lg:block bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Data</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Nome</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Telefone</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Renda Mensal</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500">Tempo de Mercado</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Data</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Nome</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Email</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Telefone</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Renda Mensal</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 whitespace-nowrap">Tempo de Mercado</th>
               </tr>
             </thead>
             <tbody>
@@ -101,12 +115,12 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               ) : (
                 result.data.map((lead) => (
                   <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
-                    <td className="px-4 py-3 text-gray-900">{formatDate(lead.data)}</td>
-                    <td className="px-4 py-3 text-gray-900">{lead.nome ?? "-"}</td>
-                    <td className="px-4 py-3 text-gray-500">{lead.email ?? "-"}</td>
-                    <td className="px-4 py-3 text-gray-500">{lead.telefone ?? "-"}</td>
-                    <td className="px-4 py-3 text-gray-500">{lead.renda_mensal ?? "-"}</td>
-                    <td className="px-4 py-3 text-gray-500">{lead.tempo_mercado ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{formatDate(lead.data)}</td>
+                    <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{lead.nome ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lead.email ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lead.telefone ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lead.renda_mensal ?? "-"}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lead.tempo_mercado ?? "-"}</td>
                   </tr>
                 ))
               )}
