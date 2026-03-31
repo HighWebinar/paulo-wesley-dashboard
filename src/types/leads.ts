@@ -1,3 +1,17 @@
+export interface LeadsPageFilters {
+  from?: string;
+  to?: string;
+  renda?: string;
+  tempo?: string;
+}
+
+export interface LeadsFilters {
+  startDate?: string;
+  endDate?: string;
+  renda?: string;
+  tempo?: string;
+}
+
 export interface Lead {
   id: number;
   data: string | null;

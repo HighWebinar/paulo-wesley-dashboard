@@ -20,3 +20,16 @@ export function isValidDateParam(date: string): boolean {
   const parsed = new Date(date + "T00:00:00");
   return !isNaN(parsed.getTime());
 }
+
+import type { LeadsPageFilters, LeadsFilters } from "@/types/leads";
+
+export function toLeadsFilters(params: LeadsPageFilters): LeadsFilters {
+  const { from, to, renda, tempo } = params;
+  const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
+  return {
+    startDate: validRange ? from : undefined,
+    endDate: validRange ? to : undefined,
+    renda: renda || undefined,
+    tempo: tempo || undefined,
+  };
+}

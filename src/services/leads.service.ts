@@ -1,4 +1,6 @@
-import { LeadsRepository, type PaginatedResult, type LeadsFilters } from "@/repositories/leads.repository";
+import { LeadsRepository } from "@/repositories/leads.repository";
+import type { LeadsFilters } from "@/types/leads";
+import type { PaginatedResult } from "@/types/pagination";
 import type { Lead } from "@/types/leads";
 
 export class LeadsService {
@@ -10,6 +12,10 @@ export class LeadsService {
 
   async getPaginated(page: number = 1, filters: LeadsFilters = {}): Promise<PaginatedResult<Lead>> {
     return this.repository.findPaginated(page, filters);
+  }
+
+  async getAllFiltered(filters: LeadsFilters = {}): Promise<Lead[]> {
+    return this.repository.findAllFiltered(filters);
   }
 
   async getRendaOptions(): Promise<string[]> {

@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { LeadsService } from "@/services/leads.service";
-import { ExportCsvButton } from "@/components/export-csv-button";
+import { ExportLeadsCsv } from "@/components/export-leads-csv";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { SelectFilter } from "@/components/select-filter";
 import { DataPagination } from "@/components/data-pagination";
 import { MetricCard } from "@/components/metric-card";
 import { LeadsMobileList } from "@/components/leads-mobile-list";
-import { formatDate, isValidDateParam } from "@/lib/formatters";
+import { formatDate, toLeadsFilters } from "@/lib/formatters";
 import { Users } from "lucide-react";
 
 const leadsService = new LeadsService();
@@ -18,16 +18,10 @@ interface LeadsPageProps {
 export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   const { from, to, renda, tempo, page: pageParam } = await searchParams;
   const requestedPage = Math.max(1, Math.min(Number(pageParam) || 1, 1000));
-
-  const validRange = from && to && isValidDateParam(from) && isValidDateParam(to);
+  const filters = toLeadsFilters({ from, to, renda, tempo });
 
   const [result, rendasOptions, tempoOptions] = await Promise.all([
-    leadsService.getPaginated(requestedPage, {
-      startDate: validRange ? from : undefined,
-      endDate: validRange ? to : undefined,
-      renda,
-      tempo,
-    }),
+    leadsService.getPaginated(requestedPage, filters),
     leadsService.getRendaOptions(),
     leadsService.getTempoOptions(),
   ]);
@@ -57,19 +51,8 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           <SelectFilter paramKey="renda" options={rendasOptions} placeholder="Renda mensal" />
           <SelectFilter paramKey="tempo" options={tempoOptions} placeholder="Tempo de mercado" />
           <DateRangePicker />
-          <ExportCsvButton
-            data={result.data.map((l) => ({
-              data: l.data ?? "",
-              nome: l.nome ?? "",
-              email: l.email ?? "",
-              telefone: l.telefone ?? "",
-              renda_mensal: l.renda_mensal ?? "",
-              tempo_mercado: l.tempo_mercado ?? "",
-              ativo_principal: l.ativo_principal ?? "",
-              contato_tape: l.contato_tape ?? "",
-              maior_dificuldade: l.maior_dificuldade ?? "",
-              objetivo_trading: l.objetivo_trading ?? "",
-            }))}
+          <ExportLeadsCsv
+            filters={{ from, to, renda, tempo }}
             filename={csvFilename}
           />
         </div>
