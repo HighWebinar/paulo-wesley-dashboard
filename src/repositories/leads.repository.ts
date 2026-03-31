@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { NULL_FILTER_SENTINEL } from "@/lib/constants";
 import type { Lead, LeadsFilters } from "@/types/leads";
 import type { PaginatedResult } from "@/types/pagination";
 
@@ -8,16 +9,27 @@ const SELECT_COLUMNS = "id, data, nome, email, telefone, renda_mensal, tempo_mer
 
 export class LeadsRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private applyMultiSelectFilter(query: any, column: string, filterValues?: string[]): any {
+    if (!filterValues?.length) return query;
+
+    const values = filterValues.filter((v) => v !== NULL_FILTER_SENTINEL);
+    const includeNull = filterValues.includes(NULL_FILTER_SENTINEL);
+
+    if (values.length && includeNull) {
+      return query.or(`${column}.in.(${values.map((v) => `"${v}"`).join(",")}),${column}.is.null,${column}.eq.`);
+    }
+    if (values.length) return query.in(column, values);
+    if (includeNull) return query.or(`${column}.is.null,${column}.eq.`);
+    return query;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private applyFilters(query: any, filters: LeadsFilters): any {
     if (filters.startDate && filters.endDate) {
       query = query.gte("data", filters.startDate).lte("data", filters.endDate);
     }
-    if (filters.renda) {
-      query = query.eq("renda_mensal", filters.renda);
-    }
-    if (filters.tempo) {
-      query = query.eq("tempo_mercado", filters.tempo);
-    }
+    query = this.applyMultiSelectFilter(query, "renda_mensal", filters.renda);
+    query = this.applyMultiSelectFilter(query, "tempo_mercado", filters.tempo);
     return query;
   }
 
