@@ -8,8 +8,8 @@ export interface LeadsPageFilters {
 export interface LeadsFilters {
   startDate?: string;
   endDate?: string;
-  renda?: string;
-  tempo?: string;
+  renda?: string[];
+  tempo?: string[];
 }
 
 export interface Lead {
