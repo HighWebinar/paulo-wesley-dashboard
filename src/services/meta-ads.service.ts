@@ -1,5 +1,5 @@
 import { MetaAdsRepository, type MetaAdsFilters } from "@/repositories/meta-ads.repository";
-import type { PaginatedResult } from "@/repositories/leads.repository";
+import type { PaginatedResult } from "@/types/pagination";
 import type { MetaAd } from "@/types/meta-ads";
 
 export interface MetaAdsSummary {

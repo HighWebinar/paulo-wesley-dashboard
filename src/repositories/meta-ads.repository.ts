@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { MetaAd } from "@/types/meta-ads";
-import type { PaginatedResult } from "@/repositories/leads.repository";
+import type { PaginatedResult } from "@/types/pagination";
 
 const TABLE_NAME = "facebook_ads_daily";
 const PAGE_SIZE = 50;
