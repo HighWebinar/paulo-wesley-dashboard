@@ -20,11 +20,13 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   const requestedPage = Math.max(1, Math.min(Number(pageParam) || 1, 1000));
   const filters = toLeadsFilters({ from, to, renda, tempo });
 
-  const [result, rendasOptions, tempoOptions] = await Promise.all([
-    leadsService.getPaginated(requestedPage, filters),
+  const [rendasOptions, tempoOptions] = await Promise.all([
     leadsService.getRendaOptions(),
     leadsService.getTempoOptions(),
   ]);
+
+  const validOptions = { rendas: rendasOptions, tempos: tempoOptions };
+  const result = await leadsService.getPaginated(requestedPage, filters, validOptions);
 
   if (result.totalPages > 0 && requestedPage > result.totalPages) {
     const params = new URLSearchParams();
